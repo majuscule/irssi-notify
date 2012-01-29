@@ -122,6 +122,8 @@ int main(void)
             }
             buf[100] = '\0';
             printf("server: recieved '%s'\n", buf);
+            if (!fork())
+                execl("/home/dylan/test", "irssi", buf, NULL);
 			close(new_fd);
 			exit(0);
 		}

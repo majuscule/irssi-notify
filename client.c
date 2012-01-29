@@ -36,8 +36,8 @@ int main(int argc, char *argv[])
 	int rv;
 	char s[INET6_ADDRSTRLEN];
 
-	if (argc != 2) {
-	    fprintf(stderr,"usage: client hostname\n");
+	if (argc != 3) {
+	    fprintf(stderr,"usage: client hostname 'message'\n");
 	    exit(1);
 	}
 
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 		return 2;
 	}
 
-    if (send(sockfd, "Hello, world!", 13, 0) == -1)
+    if (send(sockfd, argv[2], strlen(argv[2])+1, 0) == -1)
         perror("send");
 
     printf("connected\n");
