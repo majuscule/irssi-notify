@@ -1,7 +1,3 @@
-/*
-** server.c -- a stream socket server demo
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -24,29 +20,28 @@ void sigchld_handler(int s)
 	while(waitpid(-1, NULL, WNOHANG) > 0);
 }
 
-// get sockaddr, IPv4 or IPv6:
+// get sockaddr, IPv4
 void *get_in_addr(struct sockaddr *sa)
 {
 	if (sa->sa_family == AF_INET) {
 		return &(((struct sockaddr_in*)sa)->sin_addr);
 	}
-
-	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
 int main(void)
 {
-	int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
+	int sockfd, activefd;  // listen on sockfd, new connection on activefd
 	struct addrinfo hints, *servinfo, *p;
 	struct sockaddr_storage their_addr; // connector's address information
 	socklen_t sin_size;
 	struct sigaction sa;
 	int yes=1;
-	char s[INET6_ADDRSTRLEN];
+	char source[INET6_ADDRSTRLEN];
+//    char CLIENT_IP[15] = "107.21.205.69\0";
 	int rv;
 
-	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_UNSPEC;
+	memset(&hints, 0, sizeof hints); // make sure the struct is empty
+	hints.ai_family = AF_INET; // IPv4
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE; // use my IP
 
@@ -54,6 +49,8 @@ int main(void)
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return 1;
 	}
+
+    // servinfo now points to a linked list of 1 or more struct addrinfos
 
 	// loop through all the results and bind to the first we can
 	for(p = servinfo; p != NULL; p = p->ai_next) {
@@ -102,34 +99,43 @@ int main(void)
 
 	while(1) {  // main accept() loop
 		sin_size = sizeof their_addr;
-		new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
-		if (new_fd == -1) {
+		activefd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
+		if (activefd == -1) {
 			perror("accept");
 			continue;
 		}
 
 		inet_ntop(their_addr.ss_family,
 			get_in_addr((struct sockaddr *)&their_addr),
-			s, sizeof s);
-		printf("server: got connection from %s\n", s);
+			source, sizeof source);
+
+        if (strcmp(source, "107.21.205.69") != 0 &&
+                strcmp(source, "127.0.0.1") != 0){
+            close(activefd);
+            continue;
+        }                                                                       
 
 		if (!fork()) { // this is the child process
 			close(sockfd); // child doesn't need the listener
-            char buf[100];
-            if (recv(new_fd, buf, 99, 0) == -1) {
+            char buf[4096];
+            if (recv(activefd, buf, 99, 0) == -1) {
                 perror("recv");
                 exit(1);
             }
-            buf[100] = '\0';
+            buf[4096] = '\0';
             printf("server: recieved '%s'\n", buf);
-            if (!fork())
-                execl("/home/dylan/test", "irssi", buf, NULL);
-			close(new_fd);
+            if (!fork()){
+                setenv("DISPLAY", ":0", 1); // doesn't seem to be doing the trick
+                execl("notify-display",
+                        "notify-display", buf, NULL);
+            // the first argument to execl is the command, the second is the first argument
+            // passed to the program ($0), customarily the evocation of the command
+            }
+			close(activefd);
 			exit(0);
 		}
-		close(new_fd);  // parent doesn't need this
+		close(activefd);
 	}
 
 	return 0;
 }
-

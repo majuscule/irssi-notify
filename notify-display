@@ -1,0 +1,4 @@
+#!/bin/bash
+
+DISPLAY=:0
+notify-send -t 0 -i ~/.irssi/irssi.png "$1" "$2"

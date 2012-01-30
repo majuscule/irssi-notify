@@ -1,7 +1,3 @@
-/*
-** client.c -- a stream socket client demo
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -75,10 +71,7 @@ int main(int argc, char *argv[])
     if (send(sockfd, argv[2], strlen(argv[2])+1, 0) == -1)
         perror("send");
 
-    printf("connected\n");
-
 	close(sockfd);
 
 	return 0;
 }
-
