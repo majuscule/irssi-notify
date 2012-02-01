@@ -109,7 +109,7 @@ int main(void)
 			get_in_addr((struct sockaddr *)&their_addr),
 			source, sizeof source);
 
-        if (strcmp(source, "107.21.205.69") != 0 &&
+        if (strcmp(source, "50.16.219.8") != 0 &&
                 strcmp(source, "127.0.0.1") != 0){
             close(activefd);
             continue;
