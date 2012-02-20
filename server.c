@@ -56,7 +56,7 @@ int main(void)
 	for(p = servinfo; p != NULL; p = p->ai_next) {
 		if ((sockfd = socket(p->ai_family, p->ai_socktype,
 				p->ai_protocol)) == -1) {
-			perror("server: socket");
+			perror("irssi-notify: socket");
 			continue;
 		}
 
@@ -68,7 +68,7 @@ int main(void)
 
 		if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
 			close(sockfd);
-			perror("server: bind");
+			perror("irssi-notify: bind");
 			continue;
 		}
 
@@ -76,7 +76,7 @@ int main(void)
 	}
 
 	if (p == NULL)  {
-		fprintf(stderr, "server: failed to bind\n");
+		fprintf(stderr, "irssi-notify: failed to bind\n");
 		return 2;
 	}
 
@@ -95,7 +95,7 @@ int main(void)
 		exit(1);
 	}
 
-	printf("server: waiting for connections...\n");
+	printf("irssi-notify: waiting for connections...\n");
 
 	while(1) {  // main accept() loop
 		sin_size = sizeof their_addr;
@@ -123,7 +123,7 @@ int main(void)
                 exit(1);
             }
             buf[4096] = '\0';
-            printf("server: recieved '%s'\n", buf);
+            printf("irssi-notify: recieved '%s'\n", buf);
             if (!fork()){
                 setenv("DISPLAY", ":0", 1); // doesn't seem to be doing the trick
                 execl("notify-display",
