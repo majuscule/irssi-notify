@@ -126,7 +126,7 @@ int main(void)
             printf("irssi-notify: recieved '%s'\n", buf);
             if (!fork()){
                 setenv("DISPLAY", ":0", 1); // doesn't seem to be doing the trick
-                execl("notify-display",
+                execlp("notify-display",
                         "notify-display", buf, NULL);
             // the first argument to execl is the command, the second is the first argument
             // passed to the program ($0), customarily the evocation of the command
