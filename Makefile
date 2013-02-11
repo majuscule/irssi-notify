@@ -1,9 +1,9 @@
 all: server client
 
 server:
-	gcc server.c -o irssi-notify
+	gcc notify.c -o irssi-notify
 client:
-	gcc client.c -o irssi-listen
+	gcc listen.c -o irssi-listen
 
 clean:
 	rm irssi-notify irssi-listen
