@@ -1,9 +1,9 @@
-all: server client
+all: irssi-listen irssi-notify
 
-server:
+irssi-notify:
 	gcc notify.c -o irssi-notify
-client:
-	gcc listen.c -o irssi-listen
+irssi-listen:
+	gcc -o irssi-listen `pkg-config --cflags --libs libnotify` listen.c
 
 clean:
 	rm irssi-notify irssi-listen

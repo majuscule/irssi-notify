@@ -10,6 +10,7 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <libnotify/notify.h>
 
 #define PORT "3490"  // the port users will be connecting to
 
@@ -124,13 +125,10 @@ int main(void)
             }
             buf[4096] = '\0';
             printf("irssi-notify: recieved '%s'\n", buf);
-            if (!fork()){
-                setenv("DISPLAY", ":0", 1); // doesn't seem to be doing the trick
-                execlp("notify-display",
-                        "notify-display", buf, NULL);
-            // the first argument to execl is the command, the second is the first argument
-            // passed to the program ($0), customarily the evocation of the command
-            }
+            notify_init("irssi-notify");
+            NotifyNotification * notification =
+                notify_notification_new("", buf, "irssi-notify");
+            notify_notification_show(notification, NULL);
 			close(activefd);
 			exit(0);
 		}
