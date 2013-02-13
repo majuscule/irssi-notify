@@ -10,30 +10,28 @@
 
 #include <arpa/inet.h>
 
-#define PORT "3490" // the port client will be connecting to 
+#define PORT "3490"
+#define MAX_MSG_ACCEPT_BYTES 100
 
-#define MAXDATASIZE 100 // max number of bytes we can get at once 
-
-// get sockaddr, IPv4 or IPv6:
+// look for an IPv4/6 host:port in an address structure
 void *get_in_addr(struct sockaddr *sa)
 {
 	if (sa->sa_family == AF_INET) {
 		return &(((struct sockaddr_in*)sa)->sin_addr);
 	}
-
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
 int main(int argc, char *argv[])
 {
 	int sockfd, numbytes;  
-	char buf[MAXDATASIZE];
-	struct addrinfo hints, *servinfo, *p;
-	int rv;
+	struct addrinfo hints, *servinfo, *port;
 	char s[INET6_ADDRSTRLEN];
+	int rv;
+	char buf[MAX_MSG_ACCEPT_BYTES];
 
 	if (argc != 3) {
-	    fprintf(stderr,"usage: client hostname 'message'\n");
+	    fprintf(stderr, "usage: client hostname 'message'\n");
 	    exit(1);
 	}
 
@@ -41,29 +39,28 @@ int main(int argc, char *argv[])
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
+    // look up local address information
 	if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return 1;
 	}
 
-	// loop through all the results and connect to the first we can
-	for(p = servinfo; p != NULL; p = p->ai_next) {
-		if ((sockfd = socket(p->ai_family, p->ai_socktype,
-				p->ai_protocol)) == -1) {
+	// loop over available interfaces and try to bind to port
+	for(port = servinfo; port != NULL; port = port->ai_next) {
+		if ((sockfd = socket(port->ai_family, port->ai_socktype,
+				port->ai_protocol)) == -1) {
 			perror("client: socket");
 			continue;
 		}
-
-		if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+		if (connect(sockfd, port->ai_addr, port->ai_addrlen) == -1) {
 			close(sockfd);
 			perror("client: connect");
 			continue;
 		}
-
 		break;
 	}
 
-	if (p == NULL) {
+	if (port == NULL) {
 		fprintf(stderr, "client: failed to connect\n");
 		return 2;
 	}
